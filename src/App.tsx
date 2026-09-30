@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { dataService } from './services/dataService';
 import { 
@@ -28,7 +29,7 @@ import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 
 function MainApp() {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, isAdmin, loading: authLoading, logout } = useAuth();
 
   // State with persistent local storage sync to prevent any flash or loss on refresh
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
@@ -78,14 +79,22 @@ function MainApp() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
 
-  // Sync URL routing on load
+  // Sync URL routing on load and browser back/forward buttons
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/admin') {
-      setActiveTab('admin');
-    } else if (path === '/admin/login') {
-      setActiveTab('admin-login');
-    }
+    const handleLocationChange = () => {
+      const path = window.location.pathname;
+      if (path === '/admin') {
+        setActiveTab('admin');
+      } else if (path === '/admin/login') {
+        setActiveTab('admin-login');
+      } else {
+        setActiveTab('home');
+      }
+    };
+
+    handleLocationChange();
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
   // Fetch initial data from Firestore / fallback
@@ -190,22 +199,98 @@ function MainApp() {
   // Find latest audio episode
   const latestAudio = products.find(p => p.type === 'audio' && p.isPublished);
 
-  // VIEW: ADMIN LOGIN
-  if (activeTab === 'admin-login') {
-    return (
-      <AdminLogin
-        settings={siteSettings}
-        onNavigateHome={() => navigateTo('home')}
-        onLoginSuccess={() => navigateTo('admin')}
-      />
-    );
-  }
+  // PROTECTED ROUTE CHECK FOR /admin/*
+  if (activeTab === 'admin' || activeTab === 'admin-login') {
+    // Requirement 5 & 6: Display loading state while checking session
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-[#F6FCFF] flex flex-col items-center justify-center p-4">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 animate-spin text-[#38A9E8]" />
+            <p className="text-sm font-bold text-[#24506B]">Đang kiểm tra phiên đăng nhập...</p>
+          </div>
+        </div>
+      );
+    }
 
-  // VIEW: ADMIN DASHBOARD
-  if (activeTab === 'admin') {
-    // If not authenticated, redirect to login as strictly instructed:
-    // "Người dùng chưa đăng nhập tài khoản quản trị KHÔNG được phép..."
-    if (!user) {
+    // Accessing /admin
+    if (activeTab === 'admin') {
+      if (!isAuthenticated) {
+        // Not authenticated -> redirect to /admin/login
+        return (
+          <AdminLogin
+            settings={siteSettings}
+            onNavigateHome={() => navigateTo('home')}
+            onLoginSuccess={() => navigateTo('admin')}
+          />
+        );
+      }
+
+      if (!isAdmin) {
+        // Authenticated but not Admin -> Access Denied
+        return (
+          <div className="min-h-screen bg-[#F6FCFF] flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-red-200 text-center space-y-4 shadow-md">
+              <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                <AlertCircle className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-bold text-[#24506B]">TRUY CẬP BỊ TỪ CHỐI</h2>
+              <p className="text-xs text-[#405866]">
+                Tài khoản của bạn không có quyền quản trị viên trên hệ thống này.
+              </p>
+              <div className="flex gap-2 justify-center pt-2">
+                <button
+                  onClick={() => navigateTo('home')}
+                  className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold text-[#24506B]"
+                >
+                  Về trang chủ
+                </button>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    navigateTo('admin-login');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-xs font-bold text-white"
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Authenticated and Admin -> Render Dashboard
+      return (
+        <AdminDashboard
+          settings={siteSettings}
+          homepageConfig={homepageConfig}
+          products={products}
+          competitions={competitions}
+          mediaList={mediaList}
+          onSaveProduct={handleSaveProduct}
+          onDeleteProduct={handleDeleteProduct}
+          onSaveCompetition={handleSaveCompetition}
+          onDeleteCompetition={handleDeleteCompetition}
+          onSaveSiteSettings={handleSaveSiteSettings}
+          onSaveHomepageConfig={handleSaveHomepageConfig}
+          onAddMediaItem={handleAddMediaItem}
+          onDeleteMediaItem={handleDeleteMediaItem}
+          onSeedData={handleSeedData}
+          onNavigateHome={() => navigateTo('home')}
+          onNavigateLogin={() => navigateTo('admin-login')}
+        />
+      );
+    }
+
+    // Accessing /admin/login
+    if (activeTab === 'admin-login') {
+      if (isAuthenticated && isAdmin) {
+        // Already logged in admin -> redirect to /admin
+        navigateTo('admin');
+        return null;
+      }
+
       return (
         <AdminLogin
           settings={siteSettings}
@@ -214,26 +299,6 @@ function MainApp() {
         />
       );
     }
-
-    return (
-      <AdminDashboard
-        settings={siteSettings}
-        homepageConfig={homepageConfig}
-        products={products}
-        competitions={competitions}
-        mediaList={mediaList}
-        onSaveProduct={handleSaveProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onSaveCompetition={handleSaveCompetition}
-        onDeleteCompetition={handleDeleteCompetition}
-        onSaveSiteSettings={handleSaveSiteSettings}
-        onSaveHomepageConfig={handleSaveHomepageConfig}
-        onAddMediaItem={handleAddMediaItem}
-        onDeleteMediaItem={handleDeleteMediaItem}
-        onSeedData={handleSeedData}
-        onNavigateHome={() => navigateTo('home')}
-      />
-    );
   }
 
   // Helper to render section by ID

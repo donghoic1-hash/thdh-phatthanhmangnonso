@@ -1,68 +1,97 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { authService, AuthUser } from '../services/authService';
 
-interface AuthContextType {
-  user: User | null;
+export interface AuthContextType {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
   isAdmin: boolean;
-  adminDisplayName: string;
   loading: boolean;
-  loginWithGoogle: () => Promise<void>;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  isAuthenticated: false,
   isAdmin: false,
-  adminDisplayName: 'donghoic1',
   loading: true,
-  loginWithGoogle: async () => {},
+  login: async () => ({ success: false }),
   logout: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
+  // Restore authenticated session safely on boot
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    let isMounted = true;
+
+    async function checkAuthSession() {
+      try {
+        const session = await authService.verifySession();
+        if (isMounted) {
+          if (session.isAuthenticated && session.isAdmin) {
+            setUser(session.user);
+            setIsAuthenticated(true);
+            setIsAdmin(true);
+          } else {
+            setUser(null);
+            setIsAuthenticated(false);
+            setIsAdmin(false);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    checkAuthSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Admin email configured in rules & system prompt is donghoic1@gmail.com
-  const isAdmin = Boolean(
-    user && (user.email === 'donghoic1@gmail.com' || user.email?.startsWith('donghoic1'))
-  );
-
-  const loginWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error('Google Sign In error:', error);
-      throw error;
+  const login = async (username: string, password: string) => {
+    const res = await authService.login(username, password);
+    if (res.success && res.user) {
+      setUser(res.user);
+      setIsAuthenticated(true);
+      setIsAdmin(true);
+      return { success: true };
     }
+    return {
+      success: false,
+      error: res.error || 'Tên đăng nhập hoặc mật khẩu không chính xác.'
+    };
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Sign out error:', error);
-      throw error;
-    }
+    await authService.logout();
+    setUser(null);
+    setIsAuthenticated(false);
+    setIsAdmin(false);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        isAuthenticated,
         isAdmin,
-        adminDisplayName: 'donghoic1',
         loading,
-        loginWithGoogle,
+        login,
         logout,
       }}
     >

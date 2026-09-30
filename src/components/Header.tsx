@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNowPlaying,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
@@ -71,13 +71,13 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {user ? (
+            {isAuthenticated && isAdmin ? (
               <button
                 onClick={() => onNavigate('admin')}
-                className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded bg-[#38A9E8] text-white hover:bg-[#24506B] transition-colors"
+                className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-[#38A9E8] text-white hover:bg-[#24506B] transition-colors shadow-xs"
               >
-                <Lock className="w-3 h-3" />
-                <span>Quản trị ({user.displayName || 'donghoic1'})</span>
+                <Lock className="w-3.5 h-3.5" />
+                <span>QUẢN TRỊ VIÊN</span>
               </button>
             ) : (
               <button
@@ -85,8 +85,8 @@ export const Header: React.FC<HeaderProps> = ({
                 className="flex items-center gap-1 text-xs font-medium text-[#24506B] hover:text-[#38A9E8] transition-colors"
                 title="Đăng nhập tài khoản quản trị viên"
               >
-                <Lock className="w-3 h-3" />
-                <span>Admin</span>
+                <Lock className="w-3.5 h-3.5" />
+                <span>Quản trị</span>
               </button>
             )}
           </div>
@@ -182,11 +182,11 @@ export const Header: React.FC<HeaderProps> = ({
           })}
           <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
             <button
-              onClick={() => handleNavClick(user ? 'admin' : 'admin-login')}
+              onClick={() => handleNavClick(isAuthenticated && isAdmin ? 'admin' : 'admin-login')}
               className="flex items-center gap-2 text-xs font-semibold text-[#38A9E8] px-3 py-2"
             >
               <Lock className="w-4 h-4" />
-              <span>{user ? 'Vào Bảng Quản Trị' : 'Đăng nhập Quản trị viên'}</span>
+              <span>{isAuthenticated && isAdmin ? 'QUẢN TRỊ VIÊN' : 'Đăng nhập Quản trị'}</span>
             </button>
           </div>
         </div>

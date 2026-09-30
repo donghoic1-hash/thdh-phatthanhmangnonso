@@ -60,6 +60,7 @@ interface AdminDashboardProps {
   onDeleteMediaItem: (id: string) => Promise<void>;
   onSeedData: () => Promise<void>;
   onNavigateHome: () => void;
+  onNavigateLogin: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -78,8 +79,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteMediaItem,
   onSeedData,
   onNavigateHome,
+  onNavigateLogin,
 }) => {
-  const { user, adminDisplayName, logout } = useAuth();
+  const { logout } = useAuth();
   
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<
@@ -403,7 +405,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </span>
             </div>
             <p className="text-xs text-[#405866]">
-              Tài khoản: <strong className="text-[#38A9E8]">{adminDisplayName}</strong> ({user?.email || 'donghoic1@gmail.com'})
+              Vai trò: <strong className="text-[#38A9E8]">QUẢN TRỊ VIÊN</strong>
             </p>
           </div>
         </div>
@@ -420,12 +422,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={async () => {
               await logout();
-              onNavigateHome();
+              onNavigateLogin();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors shadow-xs"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Đăng xuất</span>
+            <span>ĐĂNG XUẤT</span>
           </button>
         </div>
       </header>
