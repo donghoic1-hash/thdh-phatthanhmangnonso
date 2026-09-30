@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" width="1600" height="700">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAF8FF" />
+      <stop offset="50%" stop-color="#F6FCFF" />
+      <stop offset="100%" stop-color="#D7F1FF" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38A9E8" />
+      <stop offset="100%" stop-color="#70C8F3" />
+    </linearGradient>
+    <pattern id="dotPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="2" fill="#70C8F3" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+  <rect width="100%" height="100%" fill="url(#dotPattern)"/>
+
+  <!-- Geometric Abstract Magazine Floating Cards -->
+  <g transform="translate(950, 80)">
+    <!-- Back card -->
+    <rect x="50" y="60" width="380" height="460" rx="32" fill="#FFFFFF" opacity="0.6" transform="rotate(8 240 290)"/>
+    <!-- Middle card: Video preview -->
+    <rect x="20" y="30" width="420" height="480" rx="32" fill="#FFFFFF" stroke="#EAF8FF" stroke-width="4" transform="rotate(-4 230 270)" filter="drop-shadow(0 15px 30px rgba(56, 169, 232, 0.15))"/>
+    
+    <!-- Top featured visual -->
+    <rect x="0" y="0" width="440" height="500" rx="32" fill="#FFFFFF" stroke="#70C8F3" stroke-width="3" filter="drop-shadow(0 20px 40px rgba(36, 80, 107, 0.12))"/>
+    
+    <!-- Image simulation inside card -->
+    <rect x="24" y="24" width="392" height="280" rx="20" fill="url(#primaryGrad)"/>
+    
+    <!-- Play button overlay -->
+    <circle cx="220" cy="164" r="44" fill="#FFFFFF" opacity="0.95" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.15))"/>
+    <polygon points="212,148 236,164 212,180" fill="#38A9E8"/>
+
+    <!-- Waveform graphic inside card -->
+    <rect x="40" y="330" width="160" height="14" rx="7" fill="#24506B"/>
+    <rect x="40" y="354" width="280" height="10" rx="5" fill="#70C8F3" opacity="0.6"/>
+    <rect x="40" y="372" width="220" height="10" rx="5" fill="#70C8F3" opacity="0.4"/>
+
+    <!-- Badge -->
+    <rect x="40" y="420" width="140" height="36" rx="18" fill="#FFD76A"/>
+    <text x="110" y="443" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="bold" fill="#24506B" text-anchor="middle">★ SỐ PHÁT SÓNG MỚI</text>
+  </g>
+
+  <!-- Sound Waves & Floating Elements on left -->
+  <g opacity="0.7">
+    <circle cx="250" cy="220" r="140" fill="none" stroke="#70C8F3" stroke-width="2" stroke-dasharray="8 8"/>
+    <circle cx="250" cy="220" r="190" fill="none" stroke="#38A9E8" stroke-width="1.5" stroke-dasharray="12 12"/>
+    <circle cx="160" cy="480" r="12" fill="#FFD76A"/>
+    <circle cx="380" cy="140" r="18" fill="#70C8F3" opacity="0.5"/>
+    <circle cx="820" cy="480" r="16" fill="#38A9E8" opacity="0.4"/>
+  </g>
+</svg>

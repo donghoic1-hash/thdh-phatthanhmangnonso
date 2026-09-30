@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Student media showcase product including video, audio, digital arts, and galleries",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 300 },
+        "studentName": { "type": "string", "maxLength": 100 },
+        "studentClass": { "type": "string", "maxLength": 50 },
+        "type": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "thumbnail": { "type": "string", "maxLength": 1000 },
+        "mediaUrl": { "type": "string", "maxLength": 1000 },
+        "audioUrl": { "type": "string", "maxLength": 1000 },
+        "videoUrl": { "type": "string", "maxLength": 1000 },
+        "images": { "type": "array" },
+        "facebookUrl": { "type": "string", "maxLength": 1000 },
+        "youtubeUrl": { "type": "string", "maxLength": 1000 },
+        "category": { "type": "string", "maxLength": 100 },
+        "competitionId": { "type": "string", "maxLength": 100 },
+        "isPublished": { "type": "boolean" },
+        "isFeatured": { "type": "boolean" },
+        "views": { "type": "number" },
+        "likes": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["title", "type", "isPublished"]
+    },
+    "Competition": {
+      "title": "Competition",
+      "description": "School and union competitions for students",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200 },
+        "slug": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "banner": { "type": "string", "maxLength": 1000 },
+        "icon": { "type": "string", "maxLength": 100 },
+        "date": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "maxLength": 50 },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["title", "slug", "isPublished"]
+    },
+    "MediaItem": {
+      "title": "MediaItem",
+      "description": "Shared media library asset",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "maxLength": 50 },
+        "url": { "type": "string", "maxLength": 2000 },
+        "size": { "type": "string", "maxLength": 50 },
+        "uploadedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["name", "type", "url"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global website configuration and brand settings",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string", "maxLength": 200 },
+        "schoolName": { "type": "string", "maxLength": 200 },
+        "tagline": { "type": "string", "maxLength": 300 },
+        "logoUrl": { "type": "string", "maxLength": 1000 },
+        "coverUrl": { "type": "string", "maxLength": 1000 },
+        "primaryColor": { "type": "string", "maxLength": 50 },
+        "secondaryColor": { "type": "string", "maxLength": 50 },
+        "facebookUrl": { "type": "string", "maxLength": 1000 },
+        "youtubeUrl": { "type": "string", "maxLength": 1000 },
+        "footerText": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      }
+    },
+    "HomepageConfig": {
+      "title": "HomepageConfig",
+      "description": "Homepage section visibility, order, and featured picks",
+      "type": "object",
+      "properties": {
+        "sections": { "type": "array" },
+        "featuredProductIds": { "type": "array" },
+        "featuredAudioIds": { "type": "array" },
+        "featuredVideoIds": { "type": "array" },
+        "featuredCompetitionIds": { "type": "array" },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      }
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of student media showcase products"
+    },
+    "/competitions/{competitionId}": {
+      "schema": "Competition",
+      "description": "Collection of student competitions"
+    },
+    "/media/{mediaId}": {
+      "schema": "MediaItem",
+      "description": "Shared media library assets"
+    },
+    "/site_settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Site-wide appearance and identity configuration"
+    },
+    "/homepage_config/{configId}": {
+      "schema": "HomepageConfig",
+      "description": "Homepage layout configuration"
+    },
+    "/admins/{adminId}": {
+      "schema": "object",
+      "description": "Admin users registry"
+    }
+  }
+}

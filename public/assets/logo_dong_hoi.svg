@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38A9E8" />
+      <stop offset="100%" stop-color="#70C8F3" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD76A" />
+      <stop offset="100%" stop-color="#FFA800" />
+    </linearGradient>
+  </defs>
+  <!-- Outer Circle -->
+  <circle cx="100" cy="100" r="92" fill="#FFFFFF" stroke="#38A9E8" stroke-width="6"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#EAF8FF" stroke-width="4"/>
+  
+  <!-- Outer Ring Text Arc or Stars -->
+  <circle cx="100" cy="28" r="6" fill="#FFD76A" />
+  <circle cx="48" cy="46" r="4" fill="#70C8F3" />
+  <circle cx="152" cy="46" r="4" fill="#70C8F3" />
+  
+  <!-- Modern Bamboo Sprout / Măng Non Symbol -->
+  <path d="M100 45 C100 45, 120 75, 120 105 C120 120, 110 130, 100 135 C90 130, 80 120, 80 105 C80 75, 100 45, 100 45 Z" fill="url(#skyGrad)" opacity="0.95"/>
+  <path d="M100 60 C100 60, 112 85, 112 105 C112 115, 105 125, 100 128 C95 125, 88 115, 88 105 C88 85, 100 60, 100 60 Z" fill="#FFFFFF"/>
+  <path d="M100 70 C100 70, 106 90, 106 102 C106 110, 102 116, 100 118 C98 116, 94 110, 94 102 C94 90, 100 70, 100 70 Z" fill="url(#goldGrad)"/>
+
+  <!-- Open Book Base -->
+  <path d="M55 125 C75 118, 95 120, 100 132 C105 120, 125 118, 145 125 C145 135, 125 130, 100 144 C75 130, 55 135, 55 125 Z" fill="#24506B"/>
+  
+  <!-- Digital Broadcast Waves -->
+  <path d="M68 85 A 42 42 0 0 1 76 65" fill="none" stroke="#38A9E8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M60 95 A 55 55 0 0 1 70 52" fill="none" stroke="#70C8F3" stroke-width="3" stroke-linecap="round"/>
+  <path d="M132 85 A 42 42 0 0 0 124 65" fill="none" stroke="#38A9E8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M140 95 A 55 55 0 0 0 130 52" fill="none" stroke="#70C8F3" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- School Ribbon / Banner -->
+  <rect x="36" y="148" width="128" height="24" rx="12" fill="#38A9E8"/>
+  <text x="100" y="164" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">ĐÔNG HỘI C1</text>
+</svg>

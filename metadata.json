@@ -1,0 +1,6 @@
+{
+  "name": "PHÁT THANH MĂNG NON SỐ - Trường Tiểu học Đông Hội",
+  "description": "Không gian trưng bày sản phẩm truyền thông số của học sinh Trường Tiểu học Đông Hội - Nơi những thanh âm trong trẻo của tuổi thơ cất cánh",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
