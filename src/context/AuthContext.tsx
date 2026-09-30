@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { authService, AuthUser } from '../services/authService';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '../firebase';
+import { authService, checkIsAdmin } from '../services/authService';
 
 export interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
-  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string; errorCode?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string; errorCode?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -16,73 +19,79 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
   login: async () => ({ success: false }),
+  loginWithGoogle: async () => ({ success: false }),
   logout: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Restore authenticated session safely on boot
+  // Subscribe to real Firebase Authentication State changes (Requirement 6)
   useEffect(() => {
-    let isMounted = true;
-
-    async function checkAuthSession() {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        const session = await authService.verifySession();
-        if (isMounted) {
-          if (session.isAuthenticated && session.isAdmin) {
-            setUser(session.user);
-            setIsAuthenticated(true);
+        if (firebaseUser) {
+          const adminAuthorized = await checkIsAdmin(firebaseUser);
+          if (adminAuthorized) {
+            setUser(firebaseUser);
             setIsAdmin(true);
           } else {
             setUser(null);
-            setIsAuthenticated(false);
             setIsAdmin(false);
           }
-        }
-      } catch (err) {
-        if (isMounted) {
+        } else {
           setUser(null);
-          setIsAuthenticated(false);
           setIsAdmin(false);
         }
+      } catch (err) {
+        console.error('[Auth State Error]:', err);
+        setUser(null);
+        setIsAdmin(false);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    }
+    });
 
-    checkAuthSession();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => unsubscribe();
   }, []);
 
   const login = async (username: string, password: string) => {
-    const res = await authService.login(username, password);
-    if (res.success && res.user) {
-      setUser(res.user);
-      setIsAuthenticated(true);
+    const result = await authService.loginAdmin(username, password);
+    if (result.success && result.user) {
+      setUser(result.user);
       setIsAdmin(true);
       return { success: true };
     }
     return {
       success: false,
-      error: res.error || 'Tên đăng nhập hoặc mật khẩu không chính xác.'
+      error: result.error || 'Tên đăng nhập hoặc mật khẩu không chính xác.',
+      errorCode: result.errorCode
+    };
+  };
+
+  const loginWithGoogle = async () => {
+    const result = await authService.loginWithGoogle();
+    if (result.success && result.user) {
+      setUser(result.user);
+      setIsAdmin(true);
+      return { success: true };
+    }
+    return {
+      success: false,
+      error: result.error || 'Đăng nhập Google không thành công.',
+      errorCode: result.errorCode
     };
   };
 
   const logout = async () => {
     await authService.logout();
     setUser(null);
-    setIsAuthenticated(false);
     setIsAdmin(false);
   };
+
+  const isAuthenticated = Boolean(user && isAdmin);
 
   return (
     <AuthContext.Provider
@@ -92,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         loading,
         login,
+        loginWithGoogle,
         logout,
       }}
     >

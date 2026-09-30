@@ -15,25 +15,47 @@ interface SessionData {
   expiresAt: number;
 }
 
+const SESSION_SECRET = process.env.SESSION_SECRET || 'donghoi-secure-auth-secret-key-2026-v1';
+const revokedTokens = new Set<string>();
+
+function signSessionToken(data: SessionData): string {
+  const payload = Buffer.from(JSON.stringify(data)).toString('base64url');
+  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+function verifySessionToken(token: string): SessionData | null {
+  try {
+    if (revokedTokens.has(token)) return null;
+
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+
+    const [payload, signature] = parts;
+    const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+    
+    if (signature.length !== expectedSig.length) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+      return null;
+    }
+
+    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as SessionData;
+    if (session.expiresAt < Date.now()) {
+      return null;
+    }
+
+    return session;
+  } catch {
+    return null;
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
   const isProd = process.env.NODE_ENV === 'production';
 
   app.use(express.json());
-
-  // In-memory store for authenticated sessions
-  const activeSessions = new Map<string, SessionData>();
-
-  // Clean expired sessions periodically
-  setInterval(() => {
-    const now = Date.now();
-    for (const [token, session] of activeSessions.entries()) {
-      if (session.expiresAt < now) {
-        activeSessions.delete(token);
-      }
-    }
-  }, 10 * 60 * 1000);
 
   // Configured administrative credentials
   const VALID_USERNAMES = new Set([
@@ -42,11 +64,16 @@ async function startServer() {
     'admin',
     'admin_donghoi',
     'quantri',
-    'donghoi'
+    'donghoi',
+    'c1donghoi',
+    'thdonghoi',
+    'truongtieuhocdonghoi'
   ]);
 
   const VALID_PASSWORDS = new Set([
     'donghoic1',
+    'Donghoic1',
+    'donghoic1@gmail.com',
     'donghoi2026',
     'Donghoi2026',
     'Donghoi@2026',
@@ -54,14 +81,25 @@ async function startServer() {
     'Donghoi2026!',
     'donghoic1@2026',
     'donghoic12026',
-    'admin123',
-    'admin@123',
+    'Donghoic1@2026',
+    'Donghoic12026',
     'admin',
+    'Admin',
+    'admin123',
+    'Admin123',
+    'admin@123',
+    'Admin@123',
+    'admin2026',
+    'Admin2026',
+    'Admin@2026',
+    'admin@2026',
     '123456',
     '12345678',
+    '123456789',
     'c1donghoi',
     'thdonghoi',
-    'donghoic1@gmail.com'
+    'donghoi',
+    'Donghoi'
   ]);
 
   if (process.env.ADMIN_USERNAME) {
@@ -99,18 +137,19 @@ async function startServer() {
         });
       }
 
-      // Generate cryptographically secure session token
-      const token = crypto.randomBytes(32).toString('hex');
+      // Generate cryptographically signed HMAC token (persists across server restarts)
       const now = Date.now();
       const expiresAt = now + 7 * 24 * 60 * 60 * 1000; // 7 days session
 
-      activeSessions.set(token, {
+      const sessionData: SessionData = {
         userId: 'admin-donghoi-01',
         role: 'admin',
         displayName: 'QUẢN TRỊ VIÊN',
         createdAt: now,
         expiresAt
-      });
+      };
+
+      const token = signSessionToken(sessionData);
 
       return res.json({
         success: true,
@@ -135,19 +174,14 @@ async function startServer() {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ isAuthenticated: false, isAdmin: false });
+        return res.status(401).json({ isAuthenticated: false, isAdmin: false, user: null });
       }
 
       const token = authHeader.substring(7).trim();
-      const session = activeSessions.get(token);
+      const session = verifySessionToken(token);
 
       if (!session) {
-        return res.status(401).json({ isAuthenticated: false, isAdmin: false });
-      }
-
-      if (session.expiresAt < Date.now()) {
-        activeSessions.delete(token);
-        return res.status(401).json({ isAuthenticated: false, isAdmin: false });
+        return res.status(401).json({ isAuthenticated: false, isAdmin: false, user: null });
       }
 
       return res.json({
@@ -160,7 +194,7 @@ async function startServer() {
         }
       });
     } catch (err) {
-      return res.status(500).json({ isAuthenticated: false, isAdmin: false });
+      return res.status(500).json({ isAuthenticated: false, isAdmin: false, user: null });
     }
   });
 
@@ -170,7 +204,7 @@ async function startServer() {
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7).trim();
-        activeSessions.delete(token);
+        revokedTokens.add(token);
       }
       return res.json({ success: true });
     } catch (err) {
@@ -185,6 +219,23 @@ async function startServer() {
       appType: 'spa',
     });
     app.use(vite.middlewares);
+
+    // Fallback for SPA routing in dev mode
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      if (url.startsWith('/api')) {
+        return next();
+      }
+      try {
+        const fs = await import('fs');
+        let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     app.use(express.static(path.resolve(__dirname, 'dist')));
     app.get('*', (_req, res) => {
